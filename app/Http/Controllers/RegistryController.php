@@ -13,19 +13,23 @@ class RegistryController extends Controller
     public function submitregistry(Request $request){
         //validação dos campos
         $this->validate($request, [
-            'codigopessoa' => 'required|numeric',
-            'tipopessoa' => 'required',
-            'nome' => 'required',
-            'cpfcnpj' => 'required|numeric',
-            'razaosocial' => 'required_if:tipopessoa,juridica',
-            'endereco' => 'required',
-            'numero' => 'nullable|numeric',
-            'complemento' => 'nullable',
-            'cep' => 'required|numeric',
-            'municipio' => 'required',
-            'email' => 'nullable|email',
-            'telefone' => 'nullable|numeric',
-            'celular' => 'nullable|numeric',
+            'codigopessoa' => 'required|numeric|max:999999999999999',
+            'tipopessoa' => 'required|max:8',
+            'nome' => 'required|max:120',
+            'cpfcnpj' => 'required|numeric|max:99999999999999',
+            'razaosocial' => 'required_if:tipopessoa,juridica|max:120',
+            'endereco' => 'required|max:120',
+            'numero' => 'nullable|numeric|max:170000',
+            'complemento' => 'nullable|max:20',
+            'cep' => 'required|numeric|max:99999999',
+            'municipio' => 'required|max:100',
+            'cidade' => 'required|max:100',
+            'email' => 'nullable|email|max:100',
+            'telefone' => 'nullable|numeric|max:999999999999999',
+            'celular' => 'nullable|numeric|max:999999999999999',
+            'cliente' => 'nullable|numeric|max:1',
+            'fornecedor' => 'nullable|numeric|max:1',
+            'funcionario' => 'nullable|numeric|max:1',
             
         ]);
         
@@ -71,6 +75,7 @@ class RegistryController extends Controller
         $registro->cliente = $request->input('cliente');
         $registro->fornecedor = $request->input('fornecedor');
         $registro->funcionario = $request->input('funcionario');
+        
             
         // Salvar registro no DB
         $registro->save();
@@ -87,39 +92,110 @@ class RegistryController extends Controller
     
     public function searchregistry (Request $request){
         
-        //print_r ($request->all()); testes
+        
+        // desconsiderar pesquisa nesses campos caso não informados
+        //if ($request->nome == ""){$request->nome='null';}
+        //if ($request->cpfcnpj == ""){$request->cpfcnpj='null';} ######### não usado ########
         
         
         
         //iniciar consulta da pesquisa
-        
-        
-        // desconsiderar pesquisa nesses campos caso não informados
-        if ($request->nome == ""){$request->nome='null';}
-        if ($request->cpfcnpj == ""){$request->cpfcnpj='null';}
-        
-        $consulta = DB::table('cadastros')
-            ->Where('nome', 'LIKE', "%$request->nome%")
-            ->orwhere('tipopessoa', '=', $request->input('tipopessoa'))
-            ->orWhere('cpfcnpj', 'LIKE', "%$request->cpfcnpj%")
-            ->orwhere('cliente', '=', $request->input('cliente'))
-            ->orwhere('fornecedor', '=', $request->input('fornecedor'))
-            ->orwhere('funcionario', '=', $request->input('funcionario'))
-            ->get();
-        
-        
-        
-        
-        //foreach ($consulta as $consultalinha) {   testes
-        //    echo '<br>';
-        //    foreach ($consultalinha as $consultacoluna) {
-        //        print_r($consultacoluna);
-           //     echo "&nbsp;";
-         //   }
-        //}
-        
-        
-        
+
+        $stringwhereRaw='';
+        switch ($request->input('tipopesquisa')) {
+            case "0":
+                //$consulta = DB::table('cadastros')
+                //    ->Where('nome', 'LIKE', "%$request->nome%")
+                //    ->orwhere('tipopessoa', '=', $request->input('tipopessoa'))
+                //    ->orWhere('cpfcnpj', 'LIKE', "%$request->cpfcnpj%")
+                //    ->orwhere('cliente', '=', $request->input('cliente'))
+                //    ->orwhere('fornecedor', '=', $request->input('fornecedor'))
+                //    ->orwhere('funcionario', '=', $request->input('funcionario'))
+                //    ->get();            ######################### Não usado ########################
+                
+                if ($request->input('nome')!=''){
+                    $stringwhereRaw = $stringwhereRaw . "nome LIKE '%$request->nome%' or ";
+                }    
+                
+                if ($request->input('tipopessoa')!=''){
+                    $stringwhereRaw = $stringwhereRaw . "'$request->tipopessoa' = tipopessoa or ";
+                }
+                
+                if ($request->input('cpfcnpj')!=''){
+                    $stringwhereRaw = $stringwhereRaw . "cpfcnpj LIKE '%$request->cpfcnpj%' or ";
+                }
+                
+                if ($request->input('cliente')!=''){
+                    $stringwhereRaw = $stringwhereRaw . "'$request->cliente' = cliente or ";
+                }
+                
+                if ($request->input('fornecedor')!=''){
+                    $stringwhereRaw = $stringwhereRaw . "'$request->fornecedor' = fornecedor or ";
+                }
+                
+                if ($request->input('funcionario')!=''){
+                    $stringwhereRaw = $stringwhereRaw . "'$request->funcionario' = funcionario or ";
+                }
+                // limpa o último or da query
+                $stringwhereRaw = substr($stringwhereRaw, 0, strlen($stringwhereRaw)-4);
+                
+                $consulta = DB::table('cadastros')
+                    ->orwhereRaw($stringwhereRaw)
+                    ->get();      
+                
+                break;
+                
+
+               
+            case "1":
+                
+                
+                //trecho para criar uma array baseada no request->input(), onde os resultados não informados serão trocados pela string "nulo" a qual será usada para comparação dentro da query
+                //$arrayrequestmodificado = $request->input();
+                //$arrayrequestmodificadokeys = array_keys($arrayrequestmodificado);
+                //
+                //for($i=0 ; $i<count($arrayrequestmodificadokeys) ; $i++){
+                //    if ($arrayrequestmodificado[$arrayrequestmodificadokeys[$i]]==''){
+                //        $arrayrequestmodificado[$arrayrequestmodificadokeys[$i]]='nulo';
+                //    }
+                //}##################### não usado ##################
+                
+                
+                
+                //construir string whereRaw
+                if ($request->input('nome')!=''){
+                    $stringwhereRaw = $stringwhereRaw . "nome LIKE '%$request->nome%' and ";
+                }    
+                
+                if ($request->input('tipopessoa')!=''){
+                    $stringwhereRaw = $stringwhereRaw . "'$request->tipopessoa' = tipopessoa and ";
+                }
+                
+                if ($request->input('cpfcnpj')!=''){
+                    $stringwhereRaw = $stringwhereRaw . "cpfcnpj LIKE '%$request->cpfcnpj%' and ";
+                }
+                
+                if ($request->input('cliente')!=''){
+                    $stringwhereRaw = $stringwhereRaw . "'$request->cliente' = cliente and ";
+                }
+                
+                if ($request->input('fornecedor')!=''){
+                    $stringwhereRaw = $stringwhereRaw . "'$request->fornecedor' = fornecedor and ";
+                }
+                
+                if ($request->input('funcionario')!=''){
+                    $stringwhereRaw = $stringwhereRaw . "'$request->funcionario' = funcionario and ";
+                }
+                // limpa o ultimo and da query,
+                //if (substr($stringwhereRaw, -5) == ' and '){
+                $stringwhereRaw = substr($stringwhereRaw, 0, strlen($stringwhereRaw)-5);
+                //}
+                $consulta = DB::table('cadastros')
+                    ->whereRaw($stringwhereRaw)
+                    ->get();
+                
+                break;
+        }
         
         //cria data e hora de agora
         $dataagora = Carbon::now('-3:00')->format('d/m/Y H:i:s');
@@ -127,15 +203,14 @@ class RegistryController extends Controller
         //salvar form atual para o proximo
         $request->flash();
         
-        if (count($consulta)==0){
+        $countconsulta = count($consulta);
+        if ($countconsulta==0){
             return view('templates.searchregistry')->with("resultadoconsulta", $consulta)->with('consultanula', "Pesquisa realizada porém nenhum cadastro encontrado - $dataagora");
 
         } else {
-            return view('templates.searchregistry')->with("resultadoconsulta", $consulta)->with('consultapositiva', "Pesquisa realizada com sucesso - $dataagora");
+            return view('templates.searchregistry')->with("resultadoconsulta", $consulta)->with('consultapositiva', "Pesquisa realizada com sucesso, $countconsulta cadastros encontrados - $dataagora");
         }
 
-        
-        
         
         //return redirect("/searchregistry") ->withInput();
         

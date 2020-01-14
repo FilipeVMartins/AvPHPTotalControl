@@ -53,8 +53,14 @@
                 </div>
             </div>
 
-            <div class="align-self-center">
-                {{Form::submit('Pesquisar', ["class" => "btn btn-primary"])}}
+            <div class="align-self-center"><!--align-self-start-->
+                <div>
+                    {{Form::label('tipopesquisa', 'Tipo de Pesquisa: ')}}
+                    {{Form::select('tipopesquisa', ['0' => 'Abrangente', '1' => 'Exclusiva'], ["class" => "form-control"])}}
+                </div>
+                <div class="offset-md-3">
+                    {{Form::submit('Pesquisar', ["class" => "btn btn-primary"])}}
+                </div>
             </div>
         </div>
     {!! Form::close() !!}
