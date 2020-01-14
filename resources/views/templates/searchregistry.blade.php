@@ -154,7 +154,15 @@
                     <th scope="row" class="d-flex justify-content-center">{{$num}}</th>
                     
                     @foreach($consultalinha as $consultacoluna)
-                        <td>{{$consultacoluna}}</td>
+                        <td>
+                            @if($consultacoluna === 1)
+                                <span>Sim</span>
+                            @elseif($consultacoluna === 0)
+                                <span>Não</span>
+                            @else
+                                {{$consultacoluna}}
+                            @endif
+                        </td>
                     @endforeach
                 </tr>
               <?php $num++ ?>

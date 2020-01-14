@@ -203,6 +203,12 @@ class RegistryController extends Controller
         //salvar form atual para o proximo
         $request->flash();
         
+       
+        
+
+        
+        
+        
         $countconsulta = count($consulta);
         if ($countconsulta==0){
             return view('templates.searchregistry')->with("resultadoconsulta", $consulta)->with('consultanula', "Pesquisa realizada porém nenhum cadastro encontrado - $dataagora");
