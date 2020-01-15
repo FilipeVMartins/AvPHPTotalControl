@@ -66,10 +66,17 @@
     {!! Form::close() !!}
 
 
-
+    <!--Confirmação de Deleção-->
     @if(session("deletado"))
         <div class="alert alert-warning row mx-auto justify-content-between col-md-10 col-lg-10">
             {{session("deletado")}}
+        </div>
+    @endif
+
+    <!--Confirmação de Edição-->
+    @if(session("editado"))
+        <div class="alert alert-warning row mx-auto justify-content-between col-md-10 col-lg-10">
+            {{session("editado")}}
         </div>
     @endif
 

@@ -92,6 +92,7 @@ class RegistryController extends Controller
     
     public function searchregistry (Request $request){
         
+        //print_r($request->input());
         
         // desconsiderar pesquisa nesses campos caso não informados
         //if ($request->nome == ""){$request->nome='null';}
@@ -101,7 +102,7 @@ class RegistryController extends Controller
         
         //iniciar consulta da pesquisa
 
-        $stringwhereRaw='';
+        $stringwhereRaw='1 and ';// testar isso dps, adicionei para evitar erro com consulta vazia, acho que vai puxar *
         switch ($request->input('tipopesquisa')) {
             case "0":
                 //$consulta = DB::table('cadastros')
@@ -235,7 +236,7 @@ class RegistryController extends Controller
         //cria data e hora de agora
         $dataagora = Carbon::now('-3:00')->format('d/m/Y H:i:s');
         
-        return redirect("/searchregistry") ->withInput($request->old()) ->with("deletado", "Cadastro $request->delete deletado com Sucesso - $dataagora");
+        return redirect("/searchregistry") ->withInput($request->old()) ->with("deletado", "Cadastro $request->delete Deletado com Sucesso - $dataagora");
     }
     
     
@@ -283,8 +284,67 @@ class RegistryController extends Controller
     }
     
     
-    public function editegistrysave(){
+    public function editegistrysave(Request $request){
+      ////  print_r($request->input());
         
+       //// echo "<br>aaaa<br>";
+        ////print_r($request->old('codigopessoa'));
+        
+        //validação
+        
+        //recursivo, impede o old request codigopessoa de sair do valor inicialmente preenchido no form, mesmo com atualização da página
+        $request->request->add(['codigopessoa' => $request->old('codigopessoa')]);
+        
+        $this->validate($request, [
+            'codigopessoa' => 'required|numeric|exists:cadastros,codigopessoa|in:'.$request->old('codigopessoa'),
+                                'tipopessoa' => 'required|max:8',
+                                'nome' => 'required|max:120',
+                                'cpfcnpj' => 'required|numeric|max:99999999999999',
+                                'razaosocial' => 'required_if:tipopessoa,juridica|max:120',
+                                'endereco' => 'required|max:120',
+                                'numero' => 'nullable|numeric|max:170000',
+                                'complemento' => 'nullable|max:20',
+                                'cep' => 'required|numeric|max:99999999',
+                                'municipio' => 'required|max:100',
+                                'cidade' => 'required|max:100',
+                                'email' => 'nullable|email|max:100',
+                                'telefone' => 'nullable|numeric|max:999999999999999',
+                                'celular' => 'nullable|numeric|max:999999999999999',
+                                'cliente' => 'nullable|numeric|max:1',
+                                'fornecedor' => 'nullable|numeric|max:1',
+                                'funcionario' => 'nullable|numeric|max:1']);
+        
+        //fim validação
+        
+        
+        
+        $update = DB::table('cadastros')
+            ->where('codigopessoa', $request->codigopessoa)
+            ->update(['codigopessoa' => $request->codigopessoa,
+                        'tipopessoa' => $request->tipopessoa,
+                        'nome' => $request->nome,
+                        'cpfcnpj' => $request->cpfcnpj,
+                        'razaosocial' => $request->razaosocial,
+                        'endereco' => $request->endereco,
+                        'numero' => $request->numero,
+                        'complemento' => $request->complemento,
+                        'cep' => $request->cep,
+                        'municipio' => $request->municipio,
+                        'cidade' => $request->cidade,
+                        'email' => $request->email,
+                        'telefone' => $request->telefone,
+                        'celular' => $request->celular,
+                        'cliente' => $request->cliente,
+                        'fornecedor' => $request->fornecedor,
+                        'funcionario' => $request->funcionario]);
+        
+        
+        
+        //cria data e hora de agora
+        $dataagora = Carbon::now('-3:00')->format('d/m/Y H:i:s');
+        $oldcodpessoa = $request->old('codigopessoa');
+        //$request->flash();
+        //return redirect("/searchregistry")->with("editado", "Cadastro $oldcodpessoa Editado com Sucesso - $dataagora");
     }
     
 }

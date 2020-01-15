@@ -11,25 +11,25 @@
 |
 */
 
-Route::get('/', function () {
-    return view('templates.home');
-});
+Route::get('/', 'RoutesController@getRegistry');
+Route::get('/home', 'RoutesController@getRegistry');
+Route::get('/registry', 'RoutesController@getRegistry');//inicio = home = cadastro
 
-Route::get('/home', function () {
-    return view('templates.home');
-});
-
-Route::get('/searchregistry', function () {
-    return view('templates.searchregistry');
-});
 
 Route::post('/searchregistry', 'RegistryController@searchregistry');
+Route::get('/searchregistry', 'RoutesController@getSearchregistry');
+
 
 Route::post('/searchregistry/deleteregistry', 'RegistryController@deleteregistry');
+Route::get('/searchregistry/deleteregistry', 'RoutesController@getDeleteregistry');
+
 
 Route::post('/searchregistry/editregistry', 'RegistryController@editegistry');
+Route::get('/searchregistry/editregistry',  'RoutesController@getEditregistry');
+
 
 Route::post('/searchregistry/editregistry/save', 'RegistryController@editegistrysave');
+Route::get('/searchregistry/editregistry/save',  'RoutesController@getSave');
 
 
 
