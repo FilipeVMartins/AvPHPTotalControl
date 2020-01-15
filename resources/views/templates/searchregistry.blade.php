@@ -75,7 +75,7 @@
 
     <!--Confirmação de Edição-->
     @if(session("editado"))
-        <div class="alert alert-warning row mx-auto justify-content-between col-md-10 col-lg-10">
+        <div class="alert alert-success row mx-auto justify-content-between col-md-10 col-lg-10">
             {{session("editado")}}
         </div>
     @endif

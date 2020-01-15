@@ -7,6 +7,9 @@ use App\Cadastro;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
+
+
+
 class RegistryController extends Controller
 {
     //Validar e Realizar cadastro no DB
@@ -14,7 +17,7 @@ class RegistryController extends Controller
         //validação dos campos
         $this->validate($request, [
             'codigopessoa' => 'required|numeric|max:999999999999999',
-            'tipopessoa' => 'required|max:8',
+            'tipopessoa' => 'required|max:8|in:juridica,fisica',
             'nome' => 'required|max:120',
             'cpfcnpj' => 'required|numeric|max:99999999999999',
             'razaosocial' => 'required_if:tipopessoa,juridica|max:120',
@@ -34,7 +37,7 @@ class RegistryController extends Controller
         ]);
         
         
-        //validação dos campos de relacionamento
+        //validação dos campos de relacionamento, pelo menos 1 precisa ser sim
         if (($request->input('cliente') == false) && ($request->input('fornecedor') == false) && ($request->input('funcionario') == false)){
             //retorna a view anterior, com os dados flash da seção anterior + o aviso do erro de pelo menos 1 relacionamento ativo
             return back()->withInput()->with("relacionamento", "Em pelo menos um dos três tipos de relacionamentos o 'Sim' precisa ser selecionado");
@@ -92,17 +95,23 @@ class RegistryController extends Controller
     
     public function searchregistry (Request $request){
         
-        //print_r($request->input());
-        
-        // desconsiderar pesquisa nesses campos caso não informados
-        //if ($request->nome == ""){$request->nome='null';}
-        //if ($request->cpfcnpj == ""){$request->cpfcnpj='null';} ######### não usado ########
-        
-        
-        
         //iniciar consulta da pesquisa
+        
+        
+        //validações das entradas do search
+        $this->validate($request, [
+            'tipopessoa' => 'nullable|max:8|in:juridica,fisica',
+            'nome' => 'nullable|max:120',
+            'cpfcnpj' => 'nullable|numeric|max:99999999999999',
+            'cliente' => 'nullable|numeric|max:1',
+            'fornecedor' => 'nullable|numeric|max:1',
+            'funcionario' => 'nullable|numeric|max:1',
+            'tipopesquisa' => 'required|boolean|numeric|max:1',
+        ]);
+        
+        
 
-        $stringwhereRaw='1 and ';// testar isso dps, adicionei para evitar erro com consulta vazia, acho que vai puxar *
+        $stringwhereRaw='1 and ';// testar isso dps, adicionei para evitar erro com consulta vazia, mas vai puxar select *
         switch ($request->input('tipopesquisa')) {
             case "0":
                 //$consulta = DB::table('cadastros')
@@ -114,6 +123,9 @@ class RegistryController extends Controller
                 //    ->orwhere('funcionario', '=', $request->input('funcionario'))
                 //    ->get();            ######################### Não usado ########################
                 
+                
+                //construir string da query de pesquisa abrangente
+                // os if's irão desconsiderar pesquisa nesses campos caso não informados
                 if ($request->input('nome')!=''){
                     $stringwhereRaw = $stringwhereRaw . "nome LIKE '%$request->nome%' or ";
                 }    
@@ -139,7 +151,7 @@ class RegistryController extends Controller
                 }
                 // limpa o último or da query
                 $stringwhereRaw = substr($stringwhereRaw, 0, strlen($stringwhereRaw)-4);
-                
+                // envio da query
                 $consulta = DB::table('cadastros')
                     ->orwhereRaw($stringwhereRaw)
                     ->get();      
@@ -147,7 +159,6 @@ class RegistryController extends Controller
                 break;
                 
 
-               
             case "1":
                 
                 
@@ -163,7 +174,8 @@ class RegistryController extends Controller
                 
                 
                 
-                //construir string whereRaw
+                //construir string da query de pesquisa exclusiva
+                // os if's irão desconsiderar pesquisa nesses campos caso não informados
                 if ($request->input('nome')!=''){
                     $stringwhereRaw = $stringwhereRaw . "nome LIKE '%$request->nome%' and ";
                 }    
@@ -191,6 +203,7 @@ class RegistryController extends Controller
                 //if (substr($stringwhereRaw, -5) == ' and '){
                 $stringwhereRaw = substr($stringwhereRaw, 0, strlen($stringwhereRaw)-5);
                 //}
+                // envio da query
                 $consulta = DB::table('cadastros')
                     ->whereRaw($stringwhereRaw)
                     ->get();
@@ -204,16 +217,12 @@ class RegistryController extends Controller
         //salvar form atual para o proximo
         $request->flash();
         
-       
         
-
-        
-        
-        
+        //se bem sucedido mas nenhum registro encontrado, retorna mensagem
         $countconsulta = count($consulta);
         if ($countconsulta==0){
             return view('templates.searchregistry')->with("resultadoconsulta", $consulta)->with('consultanula', "Pesquisa realizada porém nenhum cadastro encontrado - $dataagora");
-
+        //se bem sucedido e com registro encontrado, retorna mensagem
         } else {
             return view('templates.searchregistry')->with("resultadoconsulta", $consulta)->with('consultapositiva', "Pesquisa realizada com sucesso, $countconsulta cadastros encontrados - $dataagora");
         }
@@ -222,16 +231,14 @@ class RegistryController extends Controller
         //return redirect("/searchregistry") ->withInput();
         
         //print_r ($request->old('cpfcnpj'));  
-        
-        
     }
+    
     
     
     
     public function deleteregistry (Request $request){
         //deletar pela chave primária
         Cadastro::destroy($request->input('delete'));
-        
         
         //cria data e hora de agora
         $dataagora = Carbon::now('-3:00')->format('d/m/Y H:i:s');
@@ -242,12 +249,9 @@ class RegistryController extends Controller
     
     
     
-    
     public function editegistry(Request $request){
         
         
-        
-         
         // o dado advindo de "$request->input('editar')" corresponde ao campo codigopessoa PK da tabela.
         
         //query para selecionar o cadastro a ser editado
@@ -274,8 +278,6 @@ class RegistryController extends Controller
         
         //print_r($request->input()); teste
         
-        
-        
         // armazenar os inputs na sessão flash
         $request->flash();
                                                     //tentar editar o $request->input() para passa-lo dentro do flash();
@@ -284,20 +286,14 @@ class RegistryController extends Controller
     }
     
     
+    
+    
     public function editegistrysave(Request $request){
-      ////  print_r($request->input());
-        
-       //// echo "<br>aaaa<br>";
-        ////print_r($request->old('codigopessoa'));
         
         //validação
-        
-        //recursivo, impede o old request codigopessoa de sair do valor inicialmente preenchido no form, mesmo com atualização da página
-        $request->request->add(['codigopessoa' => $request->old('codigopessoa')]);
-        
         $this->validate($request, [
-            'codigopessoa' => 'required|numeric|exists:cadastros,codigopessoa|in:'.$request->old('codigopessoa'),
-                                'tipopessoa' => 'required|max:8',
+								'codigopessoa' => 'required|numeric|exists:cadastros,codigopessoa',
+                                'tipopessoa' => 'required|max:8|in:juridica,fisica',
                                 'nome' => 'required|max:120',
                                 'cpfcnpj' => 'required|numeric|max:99999999999999',
                                 'razaosocial' => 'required_if:tipopessoa,juridica|max:120',
@@ -313,14 +309,35 @@ class RegistryController extends Controller
                                 'cliente' => 'nullable|numeric|max:1',
                                 'fornecedor' => 'nullable|numeric|max:1',
                                 'funcionario' => 'nullable|numeric|max:1']);
+		
+		// poderia ter feito um controller de validações
+        //validação dos campos de relacionamento, pelo menos 1 precisa ser sim
+        if (($request->input('cliente') == false) && ($request->input('fornecedor') == false) && ($request->input('funcionario') == false)){
+            //retorna a view anterior, com os dados flash da seção anterior + o aviso do erro de pelo menos 1 relacionamento ativo
+            return back()->withInput()->with("relacionamento", "Em pelo menos um dos três tipos de relacionamentos o 'Sim' precisa ser selecionado");
+        }
         
-        //fim validação
         
+        //validar campos que não podem se repetir em nenhum registro da tabela
+        $camposunicos = ['nome', 'cpfcnpj'];
+        //varrer os 3 campos da array $camposunicos em toda a tabela
+        foreach ($camposunicos as $campovez){
+            //realizar uma consulta sql a cada ciclo para verificar se o valor editado do campo do ciclo já existe em algum registro da tabela que não seja o próprio registro a ser editado
+            $versecampoexiste = DB::table('cadastros')
+                ->where($campovez, '=', $request->input($campovez))
+				->where('codigopessoa', '<>', $request->input('codigopessoa'))
+                ->count();
+            //se o conteudo de 1 dos 2 campos já existir em algum registro que não seja o próprio registro a ser editado, a variável $versecampoexiste terá valor != 0 e retornará a sessão com um aviso para o usuário.
+            if ($versecampoexiste>0){
+                return back()->withInput()->with("campoexiste", "Já existe um cadastro com este $campovez");
+            }
+        }
+		
         
-        
+        //construção da query de update com os dados advindos do input
         $update = DB::table('cadastros')
             ->where('codigopessoa', $request->codigopessoa)
-            ->update(['codigopessoa' => $request->codigopessoa,
+            ->update([//'codigopessoa' => $request->codigopessoa, //não se altera
                         'tipopessoa' => $request->tipopessoa,
                         'nome' => $request->nome,
                         'cpfcnpj' => $request->cpfcnpj,
@@ -338,13 +355,12 @@ class RegistryController extends Controller
                         'fornecedor' => $request->fornecedor,
                         'funcionario' => $request->funcionario]);
         
-        
-        
         //cria data e hora de agora
         $dataagora = Carbon::now('-3:00')->format('d/m/Y H:i:s');
         $oldcodpessoa = $request->old('codigopessoa');
-        //$request->flash();
-        //return redirect("/searchregistry")->with("editado", "Cadastro $oldcodpessoa Editado com Sucesso - $dataagora");
+        //salvainputs para prox pg
+        $request->flash();
+        return redirect("/searchregistry")->with("editado", "Cadastro $oldcodpessoa Editado com Sucesso - $dataagora");
     }
     
 }

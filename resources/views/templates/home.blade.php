@@ -132,6 +132,7 @@
 
         <div>
             {{Form::submit('Cadastrar', ["class" => "btn btn-primary"])}}
+            {{Form::reset('Limpar Formulário', ["class" => "btn btn-warning ml-md-2"])}}
         </div>
     {!! Form::close() !!}
     </div>

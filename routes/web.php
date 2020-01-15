@@ -32,8 +32,5 @@ Route::post('/searchregistry/editregistry/save', 'RegistryController@editegistry
 Route::get('/searchregistry/editregistry/save',  'RoutesController@getSave');
 
 
-
-
 Route::post('/submit', 'RegistryController@submitregistry');
-
-Route::get('/submit', 'RegistryController@submitregistry');//redirecionar isso pra home depois
+Route::get('/submit', 'RoutesController@getSubmitregistry');

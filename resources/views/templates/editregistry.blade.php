@@ -3,8 +3,6 @@
 
 @section("content")
 
-
-
     <h1>Alteração de Cadastro de Pessoas</h1>
     {!! Form::open(['url' => '/searchregistry/editregistry/save', 'method' => 'post']) !!}
         <div class="row mx-auto">
@@ -12,7 +10,8 @@
 
                 <div class="form-group">
                     {{Form::label('codigopessoa', 'Código da Pessoa (Não se Altera): ')}}
-                    {{Form::number('codigopessoa', '', ["class" => "form-control", "required", 'placeholder' => 'Insira o código da pessoa'])}}
+                    {{Form::number('codigopessoa', '', ["class" => "form-control", "required", "disabled", 'placeholder' => 'Insira o código da pessoa'])}}
+                    {{Form::hidden('codigopessoa', '', ["class" => "form-control", "required", 'placeholder' => 'Insira o código da pessoa'])}}
                 </div>
 
 
@@ -131,8 +130,9 @@
             </div>
         </div>  
 
-        <div>
+        <div class="d-flex justify-content-start">
             {{Form::submit('Salvar Alterações', ["class" => "btn btn-primary"])}}
+            <a href="http://avphptotalcontrol.work/searchregistry"><div class="btn btn-warning ml-md-2">Cancelar</div></a>
         </div>
     {!! Form::close() !!}
 

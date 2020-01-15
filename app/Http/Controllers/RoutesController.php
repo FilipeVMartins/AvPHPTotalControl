@@ -22,16 +22,8 @@ class RoutesController extends Controller
         return redirect("/searchregistry");//para redirecionar para a rota searchregistry caso tente-se acessar deleteregistry via get
     }
     
-    public function getEditregistry(Request $request) {
-        $request->request->add(['codigopessoa' => $request->old('codigopessoa')]);
-        //if ($request->old('codigopessoa')==''){
-        //    return redirect("/searchregistry");//para redirecionar para a rota searchregistry caso tente-se acessar editregistry sem que nenhum codigopessoa tenha sido selecionado
-        //} else {
-        
-            
+    public function getEditregistry(Request $request) {     
         return view('templates.editregistry'); //para retornar a view editregistry com as mensagens de erro da validação,
-        
-        
     }
     
     public function getSave(Request $request) {
@@ -41,6 +33,10 @@ class RoutesController extends Controller
             return view('templates.editregistry'); //para retornar a view com as mensagens de erro da validação
         }
     }
+	
+	public function getSubmitregistry () {
+		return redirect("/");
+	}
     
     
 }
