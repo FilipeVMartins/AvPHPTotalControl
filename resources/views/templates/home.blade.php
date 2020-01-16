@@ -67,7 +67,7 @@
 
 
                     <div class="form-group w-33">
-                        {{Form::label('municipio', 'Município: ')}}
+                        {{Form::label('municipio', 'UF: ')}}
                         {{Form::text('municipio', '', ["class" => "form-control", 'required', 'placeholder' => ''])}}
                     </div>
 
@@ -136,4 +136,149 @@
         </div>
     {!! Form::close() !!}
     </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		<!-- Adicionando JQuery -->
+    	<script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+		
+
+
+
+		
+
+
+
+		<!-- Javascript + jquery-->
+    	<script type="text/javascript" >
+
+			
+				//Quando o campo cpfcnpj perde o foco.
+				$("#cpfcnpj").blur(function() {
+						
+					//checar se o valor do tipo pessoa é 'juridica'
+					if ($("#tipopessoa").val()=='juridica'){
+
+
+						//declaração da função para limpar razao social e nome fantasia quando falhe
+						function limpa_formulário_cpfcnpj() {
+							// Limpa valores do formulário de cep.
+							$("#razaosocial").val("");
+							$("#nome").val("");
+						}					
+					
+					
+						
+						//Nova variável "cpfcnpj" somente com dígitos.
+						var cpfcnpj = $(this).val().replace(/\D/g, '');
+						
+						
+						
+						//Verifica se campo cpfcnpj possui valor informado.
+						if (cpfcnpj != "") {
+							
+							//Preenche os campos a serem obtidos com "..." enquanto consulta o webservice.
+							$("#razaosocial").val("...");
+							$("#nome").val("...");
+							
+							//Consulta o webservice receitaws.com.br
+							$.getJSON(`https://www.receitaws.com.br/v1/cnpj/${cpfcnpj}?callback=?`, function(resposta) {
+								
+
+								if (!("ERROR" in resposta)) {
+									//Atualiza os campos com os valores da consulta.
+									$("#razaosocial").val(resposta.nome);
+									$("#nome").val(resposta.fantasia);
+								} //end if.
+								else {
+									//caso cpfcnpj pesquisado não foi encontrado.
+									limpa_formulário_cpfcnpj();
+									alert("CNPJ não encontrado.");
+								}
+							});
+							
+						} else {
+							//cpfcnpj sem valor, limpa formulário.
+							limpa_formulário_cpfcnpj();
+						}	
+					}
+				});			
+			
+			
+			
+        $(document).ready(function() {
+
+            function limpa_formulário_cep() {
+                // Limpa valores do formulário de cep.
+                $("#endereco").val("");
+                $("#municipio").val("");
+                $("#cidade").val("");
+				$("#complemento").val("");
+            }
+            
+            //Quando o campo cep perde o foco.
+            $("#cep").blur(function() {
+
+                //Nova variável "cep" somente com dígitos.
+                var cep = $(this).val().replace(/\D/g, '');
+
+                //Verifica se campo cep possui valor informado.
+                if (cep != "") {
+
+                    //Expressão regular para validar o CEP.
+                    var validacep = /^[0-9]{8}$/;
+
+                    //Valida o formato do CEP.
+                    if(validacep.test(cep)) {
+
+                        //Preenche os campos com "..." enquanto consulta webservice.
+                        $("#endereco").val("...");
+                        $("#municipio").val("...");
+                        $("#cidade").val("...");
+						$("#complemento").val("...");
+
+                        //Consulta o webservice viacep.com.br/
+                        $.getJSON("https://viacep.com.br/ws/"+ cep +"/json/?callback=?", function(dados) {
+
+                            if (!("erro" in dados)) {
+                                //Atualiza os campos com os valores da consulta.
+                                $("#endereco").val(dados.logradouro + ', ' + dados.bairro); //somar bairro
+                                $("#municipio").val(dados.uf); //troquei para UF pois não existia municipio na api
+                                $("#cidade").val(dados.localidade);
+								$("#complemento").val(dados.complemento);
+                            } //end if.
+                            else {
+                                //CEP pesquisado não foi encontrado.
+                                limpa_formulário_cep();
+                                alert("CEP não encontrado.");
+                            }
+                        });
+                    } //end if.
+                    else {
+                        //cep é inválido.
+                        limpa_formulário_cep();
+                        alert("Formato de CEP inválido.");
+                    }
+                } //end if.
+                else {
+                    //cep sem valor, limpa formulário.
+                    limpa_formulário_cep();
+                }
+            });
+        });
+    </script>
 @endsection("content")

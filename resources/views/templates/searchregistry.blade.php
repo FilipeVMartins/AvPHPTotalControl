@@ -118,7 +118,7 @@
               <th scope="col">Número</th>
               <th scope="col">Complemento</th>
               <th scope="col">CEP</th>
-              <th scope="col">Município</th>
+              <th scope="col">UF</th><!--Troquei descr de Município por UF-->
               <th scope="col">Cidade</th>
               <th scope="col">e-mail</th>
               <th scope="col">Telefone</th>
@@ -175,31 +175,12 @@
               <?php $num++ ?>
               @endforeach
     @endif
-              
-              
-                  
-              
-              
-              
-              
-            
-
-          </tbody>
+			</tbody>
         </table>
-        
-        
-       
-        
-        
-        
-        
-        
-        
     </div>
 
         
-        
-        
+
 @endsection("content")
 
 
